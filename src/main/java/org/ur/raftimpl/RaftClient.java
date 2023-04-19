@@ -34,7 +34,7 @@ public class RaftClient implements Closeable {
                 .build());
     }
 
-    public void requestVote(long sendID, long recpID, long term, String text) {
+    public void requestVote(int sendID, int recpID, int term, String text) {
         VoteRequest request = VoteRequest.newBuilder()
                 .setSenderId(sendID)
                 .setRecipientId(recpID)
@@ -43,16 +43,10 @@ public class RaftClient implements Closeable {
                 .build();
 
         VoteResponse response = this.blockingStub.requestVote(request);
+        System.out.println("Vote Request Status: " + response.getGranted());
         System.out.printf("requestVote() response: %s\n%n", response.getText());
-        System.out.print("Vote Request Status: " + response.getGranted());
 
-    }
 
-    public static void main(String[] args) throws Exception {
-        /* Access a service running on the local machine on port 50051 */
-        try (RaftClient client = new RaftClient("localhost", 50051)) {
-            client.requestVote(1, 2, 1, "Request Sent!");
-        }
     }
 
     @Override

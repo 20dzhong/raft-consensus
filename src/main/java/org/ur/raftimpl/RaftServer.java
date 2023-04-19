@@ -7,16 +7,16 @@ import java.io.IOException;
 
 public class RaftServer {
     private Server server;
+    String host;
+    int port;
 
-    public static void main(String[] args) throws IOException, InterruptedException {
-        final RaftServer server = new RaftServer();
-        server.start();
-        server.blockUntilShutdown();
+    public RaftServer(String host, int port) {
+        this.host = host;
+        this.port = port;
     }
 
-    private void start() throws IOException {
+    public void start() throws IOException {
         /* The port on which the server should run */
-        int port = 50051;
         server = ServerBuilder.forPort(port)
                 .addService(new RaftImpl())
                 .build()
@@ -32,7 +32,7 @@ public class RaftServer {
                 }));
     }
 
-    private void stop() {
+    public void stop() {
         if (server != null) {
             server.shutdown();
         }
@@ -41,10 +41,9 @@ public class RaftServer {
     /**
      * Await termination on the main thread since the grpc library uses daemon threads.
      */
-    private void blockUntilShutdown() throws InterruptedException {
+    public void blockUntilShutdown() throws InterruptedException {
         if (server != null) {
             server.awaitTermination();
         }
     }
-
 }

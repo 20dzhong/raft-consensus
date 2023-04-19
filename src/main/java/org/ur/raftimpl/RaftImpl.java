@@ -11,7 +11,7 @@ import org.ur.comms.VoteResponse;
 
 public class RaftImpl extends RaftServerGrpc.RaftServerImplBase {
     // term number
-    long term = 1;
+    int term = 1;
 
     // you would probably put stuff like logs, and other stuff here
 
@@ -19,6 +19,7 @@ public class RaftImpl extends RaftServerGrpc.RaftServerImplBase {
     public void requestVote(VoteRequest request, StreamObserver<VoteResponse> responseObserver) {
         String msg = "";
         boolean granted = false;
+        msg = "Request vote from node " + request.getSenderId() + " to " + request.getRecipientId() + " succesfully received";
 
         // this node's term is lagging behind
         if (request.getTerm() >= term) {
@@ -29,12 +30,11 @@ public class RaftImpl extends RaftServerGrpc.RaftServerImplBase {
         VoteResponse reply = VoteResponse.newBuilder()
                 .setTerm(term)
                 .setGranted(granted)
-                .setText("Response sent!")
+                .setText(msg)
                 .build();
 
         responseObserver.onNext(reply);
         responseObserver.onCompleted();
-
     }
 
 
