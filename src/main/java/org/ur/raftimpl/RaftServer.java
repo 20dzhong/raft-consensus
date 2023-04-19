@@ -21,12 +21,10 @@ public class RaftServer {
 
 
     private Server server;
-    String host;
     int port;
     AtomicInteger term;
 
-    public RaftServer(String host, int port, ConcurrentHashMap<Integer, RaftClient> accessibleClient, AtomicInteger term) {
-        this.host = host;
+    public RaftServer(int port, ConcurrentHashMap<Integer, RaftClient> accessibleClient, AtomicInteger term) {
         this.port = port;
         this.term = term;
     }

@@ -41,6 +41,7 @@ public class RaftImpl extends RaftServerGrpc.RaftServerImplBase {
             term.set(request.getTerm());
         } else {
             msg = "Term is too low, rejected!";
+            granted = false;
         }
 
         VoteResponse reply = VoteResponse.newBuilder()

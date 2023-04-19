@@ -17,16 +17,16 @@ import org.ur.comms.VoteResponse;
 
 public class RaftClient implements Closeable {
 
-        /*
+    /*
 
-          This is the client class for gRPC, not related to Raft
-          This is used in RaftNode
+      This is the client class for gRPC, not related to Raft
+      This is used in RaftNode
 
-          Clients in gRPC are used for sending requests to servers, so the functions
-          here are used for communicating with their own server based on the channel
-          and asking for a response
+      Clients in gRPC are used for sending requests to servers, so the functions
+      here are used for communicating with their own server based on the channel
+      and asking for a response
 
-         */
+     */
 
 
     private final ManagedChannel channel;
@@ -58,8 +58,6 @@ public class RaftClient implements Closeable {
         VoteResponse response = this.blockingStub.requestVote(request);
         System.out.println("Vote Request Status: " + response.getGranted());
         System.out.printf("requestVote() response: %s\n%n", response.getText());
-
-
     }
 
     @Override

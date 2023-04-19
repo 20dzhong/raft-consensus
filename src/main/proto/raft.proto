@@ -20,7 +20,7 @@ message VoteRequest {
 
 message VoteResponse {
     // respond with the newest term if leader term is out of date
-    int32 term  = 1;
+    int32 term = 1;
     // vote granted or not
     bool granted = 2;
     // testing
