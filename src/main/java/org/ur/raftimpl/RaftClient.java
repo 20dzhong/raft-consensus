@@ -16,6 +16,19 @@ import org.ur.comms.VoteRequest;
 import org.ur.comms.VoteResponse;
 
 public class RaftClient implements Closeable {
+
+        /*
+
+          This is the client class for gRPC, not related to Raft
+          This is used in RaftNode
+
+          Clients in gRPC are used for sending requests to servers, so the functions
+          here are used for communicating with their own server based on the channel
+          and asking for a response
+
+         */
+
+
     private final ManagedChannel channel;
     private final RaftServerGrpc.RaftServerBlockingStub blockingStub;
     private final RaftServerGrpc.RaftServerStub asyncStub;

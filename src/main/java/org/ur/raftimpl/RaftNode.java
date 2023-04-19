@@ -2,19 +2,31 @@ package org.ur.raftimpl;
 
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * This represents the individual RAFT nodes, which will be comprised of a Raft Server on a port and a shared instant of n RaftClient
- * The node can send as well as receive messages
- */
 
 public class RaftNode {
-    int nodeID;
-    String host;
-    int port;
-    ConcurrentHashMap<Integer, RaftClient> accessibleClients;
 
-    public RaftNode(int nodeID, String host, int port, ConcurrentHashMap<Integer, RaftClient> accessibleClients) {
+    /*
+
+      This represent individual Raft Nodes by using a combination of gRPC client and server and attaching them
+      to this class.
+
+      This class kickstarts the server, which can respond, and starts the client, which can request
+
+      This is where the most of the logic will take place,
+      for example, node state (follower, candidate, leader), timeouts, logs, etc.
+
+     */
+
+
+    int nodeID; // id
+    String host; // host
+    int port; // port
+    ConcurrentHashMap<Integer, RaftClient> accessibleClients; // map of all client objects
+    AtomicInteger term = new AtomicInteger(1); // term of the node
+
+    public RaftNode(int nodeID, String host, int port, ConcurrentHashMap<Integer, RaftClient> accessibleClients) throws IOException, InterruptedException {
 
         this.nodeID = nodeID;
         this.host = host;
@@ -24,8 +36,13 @@ public class RaftNode {
         // if id already exist, do nothing
         if (accessibleClients.get(nodeID) != null) {
             System.out.println("nodeID: " + nodeID + "is taken, please try something else, exiting...");
-            return;
         }
+
+        // start server and client on port number
+        this.start();
+
+        // start cycle of counting timeout, if timed out, become candidate and request votes
+
     }
 
     public void start() throws IOException, InterruptedException {
@@ -39,7 +56,7 @@ public class RaftNode {
         // kickstart server creating new thread
         Thread serverThread = new Thread(() -> {
             try {
-                final RaftServer server = new RaftServer(host, port);
+                final RaftServer server = new RaftServer(host, port, accessibleClients, term);
                 server.start();
                 server.blockUntilShutdown();
             } catch (IOException | InterruptedException e) {
@@ -56,7 +73,7 @@ public class RaftNode {
         accessibleClients.putIfAbsent(this.nodeID, new RaftClient(host, port));
     }
 
-    public void requestTest(int recipientID, int senderID) {
-        accessibleClients.get(nodeID).requestVote(senderID, recipientID, 2, "Sending testComms Request through Node1");
+    public void requestTest(int recipientID, int senderID, AtomicInteger term) {
+        accessibleClients.get(nodeID).requestVote(senderID, recipientID, term.get(), "Sending testComms Request through Node1");
     }
 }

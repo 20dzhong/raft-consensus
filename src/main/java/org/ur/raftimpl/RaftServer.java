@@ -4,21 +4,37 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 
 import java.io.IOException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class RaftServer {
+
+    /*
+
+      This is the server for gRPC, not related to Raft
+      This is used in RaftNode
+
+      Server just adds the gRPC services and runs, this file should not require any edits
+      unless it's to change the behavior of the threads. For server functions, look at RaftImpl
+
+     */
+
+
     private Server server;
     String host;
     int port;
+    AtomicInteger term;
 
-    public RaftServer(String host, int port) {
+    public RaftServer(String host, int port, ConcurrentHashMap<Integer, RaftClient> accessibleClient, AtomicInteger term) {
         this.host = host;
         this.port = port;
+        this.term = term;
     }
 
     public void start() throws IOException {
         /* The port on which the server should run */
         server = ServerBuilder.forPort(port)
-                .addService(new RaftImpl())
+                .addService(new RaftImpl(term))
                 .build()
                 .start();
 
