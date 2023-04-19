@@ -1,10 +1,10 @@
-```./gradlew build``` to build project
+# Raft gRPC Implementation
 
-The proto files are auto generated in build/generated/source/proto/main/java based off of the protofile 
+* ``raft.proto``: defines behaviors of gRPC server  
+* ``RaftImpl``: implements behaviors of gRPC server
+* ``RaftServer``: uses RaftImpl and attaches it to a server
+* ``RaftClient``: implements client side code of gRPC
+* ``RaftNode``: combines gRPC server and client to create a node capable of responding and sending messages
+* ``RaftSystem``: the entire raft system with multiple raft nodes
 
-
-There is Gradle which builds the project and download dependencies, unrelated to gRPC. Gradle uses the following files:
-* build.gradle
-
-There is .proto files which specifies the behaviors of a piece of code used to generate code in language of your choice:
-* proto folder
+Note that most logic happens in RaftNode
