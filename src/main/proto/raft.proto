@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "org.ur.comms";
+
+
+// make package name for easier grouping
+package comms;
+
+message VoteRequest {
+    // id of the sender (node id)
+    uint64 sender_id = 1;
+    // id of recipient (node id)
+    uint64 recipient_id = 2;
+    // current term of the sender
+    uint64 term = 3;
+    // testing
+    string text = 4;
+}
+
+message VoteResponse {
+    // respond with the newest term if leader term is out of date
+    uint64 term  = 1;
+    // vote granted or not
+    bool granted = 2;
+    // testing
+    string text = 3;
+}
+
+// service indicates server behavior
+service RaftServer {
+    // request vote function
+    rpc RequestVote (VoteRequest) returns (VoteResponse);
+
+    // TODO append entry, and perhaps more
+}

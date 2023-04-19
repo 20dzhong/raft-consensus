@@ -27,6 +27,6 @@ service Greeter {
 
   rpc SayHelloWithManyRequestsAndReplies (stream HelloRequest) returns (stream HelloResponse);
 
-  rpc SayHelloServerToServer (HelloRequest) returns (HelloRequest);
+  rpc RequestVote (HelloRequest) returns (HelloResponse);
 
 }

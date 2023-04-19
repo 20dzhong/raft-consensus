@@ -173,17 +173,13 @@ public class HelloWorldClient implements Closeable {
     public static void main(String... args) throws Exception {
         /* Access a service running on the local machine on port 50051 */
         try (HelloWorldClient client = new HelloWorldClient("localhost", 50051)) {
-            String name = "world";
+            String name = "hi";
 
             if (args.length > 0)
                 name = args[0]; /* Use the arg as the name to greet if provided */
 
+            // client calling on response from servers
             client.sayHello(name);
-//            client.sayHelloWithManyRequests(name);
-//            client.sayHelloWithManyReplies(name);
-//            client.sayHelloWithManyRequestsAndReplies(name);
         }
     }
-
-
 }
