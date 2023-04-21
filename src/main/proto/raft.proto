@@ -8,14 +8,10 @@ option java_package = "org.ur.comms";
 package comms;
 
 message VoteRequest {
-    // id of the sender (node id)
-    int32 sender_id = 1;
-    // id of recipient (node id)
-    int32 recipient_id = 2;
+    // candidate id
+    int32 candidate_id = 1;
     // current term of the sender
     int32 term = 3;
-    // testing
-    string text = 4;
 }
 
 message VoteResponse {
@@ -23,8 +19,30 @@ message VoteResponse {
     int32 term = 1;
     // vote granted or not
     bool granted = 2;
-    // testing
+    // debugging text
     string text = 3;
+}
+
+message AppendEntriesRequest {
+    // sender id
+    int32 leader_id = 1;
+    // current term of the sender
+    int32 term = 2;
+    // leader's commit index commit or not
+    bool commit = 3;
+    // last log index
+    int32 last_log_index = 4;
+    // last log entry, none for heartbeat
+    int32 last_log_entry = 5;
+    // new log entry, none for heartbeat
+    int32 new_log_entry = 6;
+}
+
+message AppendEntriesResponse {
+    // respond with the newest term if leader term is out of date
+    int32 term = 1;
+    // whether or not the append entry was successful
+    bool success = 2;
 }
 
 // service indicates server behavior
@@ -32,5 +50,11 @@ service RaftServer {
     // request vote function
     rpc RequestVote (VoteRequest) returns (VoteResponse);
 
-    // TODO append entry, and perhaps more
+    // append entries, which also serves as heartbeat
+    rpc AppendEntries (stream AppendEntriesRequest) returns (stream AppendEntriesResponse);
+
+    // TODO register client etc
+
 }
+
+

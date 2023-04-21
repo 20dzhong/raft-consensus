@@ -15,7 +15,7 @@ public class RaftSystem {
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
-        AtomicInteger totalNodes = new AtomicInteger(3);
+        AtomicInteger totalNodes = new AtomicInteger(0);
 
         // this hashmap is where you store all the clients, this way RaftNode can communicate between different servers
 
@@ -28,12 +28,16 @@ public class RaftSystem {
         RaftNode node1 = new RaftNode(1, 50052, accessibleClients, totalNodes);
         RaftNode node2 = new RaftNode(2, 50053, accessibleClients, totalNodes);
 
+        // since each node starts a server and client, give time for server to boot up
+        Thread.sleep(5000);
+
         System.out.println(node0.nodeState);
         System.out.println(node0.term.get());
         System.out.println(node1.term.get());
         System.out.println(node2.term.get());
 
-        node0.selfElect();
+        boolean success = node0.selfElect();
+        System.out.println(success);
 
         // because 0 has highest term, the change is reflected once it becomes the leader
         System.out.println(node0.nodeState);

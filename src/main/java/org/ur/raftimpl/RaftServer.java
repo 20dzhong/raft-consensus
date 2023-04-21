@@ -5,6 +5,7 @@ import io.grpc.ServerBuilder;
 
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class RaftServer {
@@ -23,16 +24,20 @@ public class RaftServer {
     private Server server;
     int port;
     AtomicInteger term;
+    AtomicInteger leaderTerm;
+    AtomicBoolean receivedHeartbeat;
 
-    public RaftServer(int port, ConcurrentHashMap<Integer, RaftClient> accessibleClient, AtomicInteger term) {
+    public RaftServer(int port, AtomicInteger term, AtomicInteger leaderTerm, AtomicBoolean receivedHeartbeat) {
         this.port = port;
         this.term = term;
+        this.leaderTerm = leaderTerm;
+        this.receivedHeartbeat = receivedHeartbeat;
     }
 
     public void start() throws IOException {
         /* The port on which the server should run */
         server = ServerBuilder.forPort(port)
-                .addService(new RaftImpl(term))
+                .addService(new RaftImpl(term, port, leaderTerm, receivedHeartbeat))
                 .build()
                 .start();
 
