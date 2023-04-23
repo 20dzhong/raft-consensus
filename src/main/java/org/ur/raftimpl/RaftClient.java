@@ -29,12 +29,10 @@ public class RaftClient implements Closeable {
 
     private final ManagedChannel channel;
     private final RaftServerGrpc.RaftServerBlockingStub blockingStub;
-    private final RaftServerGrpc.RaftServerStub asyncStub;
 
     public RaftClient(ManagedChannel channel) {
         this.channel = channel;
         this.blockingStub = RaftServerGrpc.newBlockingStub(channel);
-        this.asyncStub = RaftServerGrpc.newStub(channel);
     }
 
     public RaftClient(String host, int port) {
@@ -45,58 +43,26 @@ public class RaftClient implements Closeable {
                 .build());
     }
 
-    public VoteResponse requestVote(int sendID, int term, String text) {
+    public VoteResponse requestVote(int sendID, int term) {
         VoteRequest request = VoteRequest.newBuilder()
                 .setCandidateId(sendID)
                 .setTerm(term)
                 .build();
-
         return this.blockingStub.requestVote(request);
     }
 
-    public void appendEntry(State state, int leaderID, int term, boolean commit, int prevLogIndex, int prevLogEntry, int newEntry) {
-        final CountDownLatch finishLatch = new CountDownLatch(1);
-
-        StreamObserver<AppendEntriesResponse> responseObserver =
-                new StreamObserver<AppendEntriesResponse>() {
-                    @Override
-                    public void onNext(AppendEntriesResponse value) {
-                        // TODO implement
-                    }
-
-                    @Override
-                    public void onError(Throwable t) {
-                        Status status = Status.fromThrowable(t);
-                        System.out.printf("sayHelloWithManyRequestsAndReplies() failed: %s%n", status);
-                        finishLatch.countDown();
-                    }
-
-                    @Override
-                    public void onCompleted() {
-                        finishLatch.countDown();
-                    }
-                };
-
-        StreamObserver<AppendEntriesRequest> requestObserver = asyncStub.appendEntries(responseObserver);
+    public AppendEntriesResponse appendEntry(int leaderID, int term, int commit, int prevLogIndex, int prevLogEntry, String newKey, String newValue) {
         AppendEntriesRequest request = AppendEntriesRequest.newBuilder()
                 .setLeaderId(leaderID)
                 .setTerm(term)
                 .setCommit(commit)
                 .setLastLogIndex(prevLogIndex)
                 .setLastLogEntry(prevLogEntry)
-                .setNewLogEntry(newEntry)
+                .setNewLogEntryKey(newKey)
+                .setNewLogEntryValue(newValue)
                 .build();
 
-        requestObserver.onNext(request);
-
-
-        // Receiving happens asynchronously
-        try {
-            finishLatch.await(1, TimeUnit.MINUTES);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
+        return this.blockingStub.appendEntries(request);
     }
 
     @Override

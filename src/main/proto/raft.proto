@@ -19,8 +19,6 @@ message VoteResponse {
     int32 term = 1;
     // vote granted or not
     bool granted = 2;
-    // debugging text
-    string text = 3;
 }
 
 message AppendEntriesRequest {
@@ -29,13 +27,16 @@ message AppendEntriesRequest {
     // current term of the sender
     int32 term = 2;
     // leader's commit index commit or not
-    bool commit = 3;
+    int32 commit = 3;
     // last log index
     int32 last_log_index = 4;
-    // last log entry, none for heartbeat
+    // last log entry
     int32 last_log_entry = 5;
     // new log entry, none for heartbeat
-    int32 new_log_entry = 6;
+    string new_log_entry_key = 6;
+    // new log entry value, none for heartbeat
+    string new_log_entry_value = 7;
+
 }
 
 message AppendEntriesResponse {
@@ -51,7 +52,7 @@ service RaftServer {
     rpc RequestVote (VoteRequest) returns (VoteResponse);
 
     // append entries, which also serves as heartbeat
-    rpc AppendEntries (stream AppendEntriesRequest) returns (stream AppendEntriesResponse);
+    rpc AppendEntries (AppendEntriesRequest) returns (AppendEntriesResponse);
 
     // TODO register client etc
 

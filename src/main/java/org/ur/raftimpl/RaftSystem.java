@@ -24,25 +24,14 @@ public class RaftSystem {
 
         ConcurrentHashMap<Integer, RaftClient> accessibleClients = new ConcurrentHashMap<>();
 
-        RaftNode node0 = new RaftNode(0, 50051, accessibleClients, totalNodes);
-        RaftNode node1 = new RaftNode(1, 50052, accessibleClients, totalNodes);
-        RaftNode node2 = new RaftNode(2, 50053, accessibleClients, totalNodes);
+        RaftNode node0 = new RaftNode(0, 50051, accessibleClients, totalNodes, 7, 3);
+        RaftNode node1 = new RaftNode(1, 50052, accessibleClients, totalNodes, 8, 5);
+        RaftNode node2 = new RaftNode(2, 50053, accessibleClients, totalNodes, 9, 3);
+        RaftNode node3 = new RaftNode(3, 50054, accessibleClients, totalNodes, 5, 7);
+        RaftNode node4 = new RaftNode(4, 50055, accessibleClients, totalNodes, 3, 8);
+//        RaftNode node2 = new RaftNode(2, 50053, accessibleClients, totalNodes, 60);
 
         // since each node starts a server and client, give time for server to boot up
-        Thread.sleep(5000);
-
-        System.out.println(node0.nodeState);
-        System.out.println(node0.term.get());
-        System.out.println(node1.term.get());
-        System.out.println(node2.term.get());
-
-        boolean success = node0.selfElect();
-        System.out.println(success);
-
-        // because 0 has highest term, the change is reflected once it becomes the leader
-        System.out.println(node0.nodeState);
-        System.out.println(node0.term.get());
-        System.out.println(node1.term.get());
-        System.out.println(node2.term.get());
+        Thread.sleep(2000);
     }
 }
