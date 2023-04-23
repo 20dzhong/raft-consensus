@@ -5,9 +5,7 @@ import org.ur.comms.VoteResponse;
 
 import java.io.IOException;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 
 public class RaftNode {
@@ -37,13 +35,16 @@ public class RaftNode {
 
 
     // shared values
-    ConcurrentHashMap<Integer, RaftClient> accessibleClients; // map of all client objects
-    AtomicInteger totalNodes; // total number of nodes
-    AtomicInteger term = new AtomicInteger(1); // default term of the node
-    AtomicInteger votedFor = new AtomicInteger(-1);
-    AtomicBoolean receivedHeartBeat = new AtomicBoolean(false); // whether or not you received a heartbeat this term
-    AtomicInteger leaderTerm = new AtomicInteger(0); // term of the leader
-    AtomicReference<State> nodeState = new AtomicReference<>(State.FOLLOWER);
+//    ConcurrentHashMap<Integer, RaftClient> accessibleClients; // map of all client objects
+//    AtomicInteger totalNodes; // total number of nodes
+//    AtomicInteger term = new AtomicInteger(1); // default term of the node
+//    AtomicInteger votedFor = new AtomicInteger(-1);
+//    AtomicBoolean receivedHeartBeat = new AtomicBoolean(false); // whether or not you received a heartbeat this term
+//    AtomicInteger leaderTerm = new AtomicInteger(0); // term of the leader
+//    AtomicReference<State> nodeState = new AtomicReference<>(State.FOLLOWER);
+    // a clump of Atomic values that needs to be passed around, clumped together for simplicity in code
+    // not sure if best idea
+    SharedVar sVar = new SharedVar();
 
     // all variables related to the task of time out loop and heartbeat loop
     ScheduledExecutorService executor;
@@ -65,8 +66,8 @@ public class RaftNode {
         this.port = port;
         this.timeout = timeout;
 
-        this.accessibleClients = accessibleClients;
-        this.totalNodes = totalNodes;
+        this.sVar.accessibleClients = accessibleClients;
+        this.sVar.totalNodes = totalNodes;
         this.initDelay = initDelay;
 
         // if id already exist, do nothing
@@ -78,7 +79,7 @@ public class RaftNode {
         this.start();
 
         timeoutCycle = () -> {
-            if (!receivedHeartBeat.get()) {
+            if (!sVar.receivedHeartBeat.get()) {
                 // timed out, no heartbeat received
                 System.out.println("Heartbeat not received, timing out: " + nodeID);
                 selfElect();
@@ -86,7 +87,7 @@ public class RaftNode {
                 System.out.println("Heartbeat received: " + nodeID);
             }
             // reset heartbeat
-            receivedHeartBeat.set(false);
+            sVar.receivedHeartBeat.set(false);
         };
 
         heartbeatCycle = this::sendHeartBeat;
@@ -98,7 +99,7 @@ public class RaftNode {
     // starting the node
     private void start() {
         // kickstart server and client
-        this.totalNodes.incrementAndGet();
+        this.sVar.totalNodes.incrementAndGet();
         this.startClient();
         this.startServer();
     }
@@ -109,7 +110,7 @@ public class RaftNode {
         Thread serverThread = new Thread(() -> {
             try {
                 // setting up the server with those variables allows the server thread to edit those variables
-                final RaftServer server = new RaftServer(port, term, leaderTerm, receivedHeartBeat, nodeState);
+                final RaftServer server = new RaftServer(port, sVar);
                 server.start();
                 server.blockUntilShutdown();
             } catch (IOException | InterruptedException e) {
@@ -124,7 +125,7 @@ public class RaftNode {
     // starting gRPC client
     private void startClient() {
         // put new client into hashmap to create an entry point into this node
-        accessibleClients.putIfAbsent(this.nodeID, new RaftClient("localhost", port));
+        sVar.accessibleClients.putIfAbsent(this.nodeID, new RaftClient("localhost", port));
     }
 
     // starting the timeout cycle
@@ -134,7 +135,7 @@ public class RaftNode {
 
     // stopping the timeout cycle
     private void stopHeartBeatMonitor() {
-        if (nodeState.get() != State.LEADER) {
+        if (sVar.nodeState.get() != State.LEADER) {
             System.out.println("Cannot stop timeout monitor since node is not a leader" + nodeID);
             return;
         }
@@ -143,7 +144,7 @@ public class RaftNode {
 
     // starting the heartbeat from leader
     private void startHeartBeat() {
-        if (nodeState.get() != State.LEADER) {
+        if (sVar.nodeState.get() != State.LEADER) {
             System.out.println("Cannot start heartbeat since node is not a leader" + nodeID);
         }
         heartbeatTask = executor.scheduleWithFixedDelay(heartbeatCycle, 0, heartbeatInterval, unit);
@@ -160,17 +161,17 @@ public class RaftNode {
         // this function is used to change state from a follower to a candidate and this will sent out requestVote messages to all followers
         // auto voted for self & increment self term by 1
         int totalVotes = 1;
-        this.term.incrementAndGet();
+        this.sVar.term.incrementAndGet();
 
-        this.nodeState.set(State.CANDIDATE);
+        this.sVar.nodeState.set(State.CANDIDATE);
 
         // gather votes
-        for (int i = 0; i < totalNodes.get(); i++) {
+        for (int i = 0; i < sVar.totalNodes.get(); i++) {
             if (i == nodeID) {
                 continue;
             }
 
-            VoteResponse response = accessibleClients.get(i).requestVote(i, term.get());
+            VoteResponse response = sVar.accessibleClients.get(i).requestVote(i, sVar.term.get());
 
             if (response.getGranted()) {
                 totalVotes++;
@@ -178,17 +179,17 @@ public class RaftNode {
         }
 
         // if candidate gets the majority of votes, then becomes leader
-        if (totalVotes > (totalNodes.get() / 2)) {
-            if (receivedHeartBeat.get()) {
+        if (totalVotes > (sVar.totalNodes.get() / 2)) {
+            if (sVar.receivedHeartBeat.get()) {
                 // heart beat was received from new / previous leader during requesting votes
-                if (leaderTerm.get() >= this.term.get()) {
+                if (sVar.leaderTerm.get() >= this.sVar.term.get()) {
                     // if leader term is at least as large as candidate current term, candidate recognize leader and return to follower
-                    this.nodeState.set(State.FOLLOWER);
-                    this.term.set(leaderTerm.get());
+                    this.sVar.nodeState.set(State.FOLLOWER);
+                    this.sVar.term.set(sVar.leaderTerm.get());
                     return false;
                 }
             } else {
-                this.nodeState.set(State.LEADER);
+                this.sVar.nodeState.set(State.LEADER);
                 System.out.println("Votes: " + totalVotes + " " + nodeID);
                 System.out.println("New leader established: " + nodeID);
                 // send heartbeat to others to assert dominance once leader
@@ -199,21 +200,21 @@ public class RaftNode {
             }
         }
 
-        System.out.println("Voting tie/error, candidate reverting to follower " + nodeID);
-        this.nodeState.set(State.FOLLOWER);
+        System.out.println("Voting tie/failed, candidate reverting to follower " + nodeID);
+        this.sVar.nodeState.set(State.FOLLOWER);
         return false;
     }
 
     public void sendHeartBeat() {
         System.out.println("Sending heartbeat from: " + nodeID);
         // once a candidate becomes a leader, it sends heartbeat messages to establish authority
-        for (int i = 0; i < totalNodes.get(); i++) {
+        for (int i = 0; i < sVar.totalNodes.get(); i++) {
             if (i == nodeID) {
                 continue;
             }
             // todo replace commit index
-            AppendEntriesResponse response = accessibleClients.get(i)
-                    .appendEntry(this.nodeID, this.term.get(), 0, 0, 0, "", "");
+            AppendEntriesResponse response = sVar.accessibleClients.get(i)
+                    .appendEntry(this.nodeID, this.sVar.term.get(), 0, 0, 0, "", "");
         }
     }
 

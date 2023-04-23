@@ -29,15 +29,16 @@ public class RaftImpl extends RaftServerGrpc.RaftServerImplBase {
     AtomicInteger leaderTerm;
     AtomicBoolean receivedHeartbeat;
     AtomicReference<RaftNode.State> nodeState;
+    AtomicInteger votedFor;
 
-    public RaftImpl(AtomicInteger term, int port, AtomicInteger leaderTerm, AtomicBoolean receivedHeartbeat, AtomicReference<RaftNode.State> nodeState) {
-        this.term = term;
+    public RaftImpl(int port, SharedVar sVar) {
         this.port = port;
-        this.leaderTerm = leaderTerm;
-        this.receivedHeartbeat = receivedHeartbeat;
-        this.nodeState = nodeState;
+        this.term = sVar.term;
+        this.votedFor = sVar.votedFor;
+        this.nodeState = sVar.nodeState;
+        this.leaderTerm = sVar.leaderTerm;
+        this.receivedHeartbeat = sVar.receivedHeartBeat;
     }
-
 
 
     @Override
@@ -45,9 +46,14 @@ public class RaftImpl extends RaftServerGrpc.RaftServerImplBase {
         boolean granted = false;
         // cannot request votes from candidate or leaders
         if (nodeState.get() != RaftNode.State.CANDIDATE && nodeState.get() != RaftNode.State.LEADER) {
-            if (request.getTerm() >= this.term.get()) {
-                this.term.set(request.getTerm());
-                granted = true;
+            // cannot request votes from those who already voted
+            if (votedFor.get() == -1) {
+                // vote is false from those with higher term than candidates
+                if (request.getTerm() >= this.term.get()) {
+                    this.votedFor.set(request.getCandidateId());
+                    this.term.set(request.getTerm());
+                    granted = true;
+                }
             }
         }
 

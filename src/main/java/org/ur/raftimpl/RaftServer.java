@@ -23,23 +23,17 @@ public class RaftServer {
 
     private Server server;
     int port;
-    AtomicInteger term;
-    AtomicInteger leaderTerm;
-    AtomicBoolean receivedHeartbeat;
-    AtomicReference<RaftNode.State> nodeState;
+    SharedVar sVar;
 
-    public RaftServer(int port, AtomicInteger term, AtomicInteger leaderTerm, AtomicBoolean receivedHeartbeat, AtomicReference<RaftNode.State> nodeState) {
+    public RaftServer(int port, SharedVar sVar) {
         this.port = port;
-        this.term = term;
-        this.leaderTerm = leaderTerm;
-        this.receivedHeartbeat = receivedHeartbeat;
-        this.nodeState = nodeState;
+        this.sVar = sVar;
     }
 
     public void start() throws IOException {
         /* The port on which the server should run */
         server = ServerBuilder.forPort(port)
-                .addService(new RaftImpl(term, port, leaderTerm, receivedHeartbeat, nodeState))
+                .addService(new RaftImpl(port, sVar))
                 .build()
                 .start();
 
