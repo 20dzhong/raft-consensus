@@ -12,6 +12,8 @@ class NodeVar {
     public AtomicBoolean receivedHeartBeat = new AtomicBoolean(false); // whether or not you received a heartbeat this term
     public AtomicReference<RaftNode.State> nodeState = new AtomicReference<>(RaftNode.State.FOLLOWER);
     public ConcurrentHashMap<String, String> logs = new ConcurrentHashMap<>();
+    public AtomicReference<String> lastKey = new AtomicReference<>("");
+    public AtomicReference<String> lastVal = new AtomicReference<>("");
 }
 
 class UniversalVar {

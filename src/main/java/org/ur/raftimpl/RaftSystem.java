@@ -1,6 +1,8 @@
 package org.ur.raftimpl;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -12,8 +14,31 @@ public class RaftSystem {
       This kick starts N RaftNodes, node.start starts running the server
 
      */
+    UniversalVar uV;
+    ArrayList<RaftNode> nodeList = new ArrayList<>();
 
-    public static void main(String[] args) throws IOException, InterruptedException {
+    RaftSystem(int nodeNum, int portBase, UniversalVar uV, int initDelay) throws InterruptedException {
+        this.uV = uV;
+
+        Random rand = new Random();
+        for (int i = 0; i < nodeNum; i++) {
+            // increment by 1 for delay and port base to prevent overlapping initialization
+            nodeList.add(new RaftNode(i, portBase + i, uV, rand.nextInt(10), initDelay + i));
+        }
+
+        Thread.sleep((initDelay + 1) * 1000L);
+    }
+
+    public String get(String key) {
+       return nodeList.get(uV.leaderID.get()).get(key);
+    }
+
+    public void put(String key, String value) {
+        System.out.println("Put: " + key + " : " + value);
+        nodeList.get(uV.leaderID.get()).put(key, value);
+    }
+
+    public static void main(String[] args) throws InterruptedException {
 
 
         // this hashmap is where you store all the clients, this way RaftNode can communicate between different servers
@@ -26,11 +51,12 @@ public class RaftSystem {
         ConcurrentHashMap<Integer, RaftClient> accessibleClients = new ConcurrentHashMap<>();
         UniversalVar uV = new UniversalVar(accessibleClients, totalNodes, leaderID);
 
-        RaftNode node0 = new RaftNode(0, 50051, uV, 7, 3);
-        RaftNode node1 = new RaftNode(1, 50052, uV, 8, 5);
-        RaftNode node2 = new RaftNode(2, 50053, uV, 9, 3);
+        RaftSystem raft = new RaftSystem(4, 50051, uV, 5);
+
+        raft.put("Hello", "World");
+        Thread.sleep(500);
+        System.out.println("Get: " + raft.get("Hello"));
 
         // since each node starts a server and client, give time for server to boot up
-        Thread.sleep(2000);
     }
 }

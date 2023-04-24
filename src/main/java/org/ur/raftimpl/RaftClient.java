@@ -51,13 +51,13 @@ public class RaftClient implements Closeable {
         return this.blockingStub.requestVote(request);
     }
 
-    public AppendEntriesResponse appendEntry(int leaderID, int term, int commit, int prevLogIndex, int prevLogEntry, String newKey, String newValue) {
+    public AppendEntriesResponse appendEntry(int leaderID, int term, int commit, String prevKey, String prevValue, String newKey, String newValue) {
         AppendEntriesRequest request = AppendEntriesRequest.newBuilder()
                 .setLeaderId(leaderID)
                 .setTerm(term)
                 .setCommit(commit)
-                .setLastLogIndex(prevLogIndex)
-                .setLastLogEntry(prevLogEntry)
+                .setLastKey(prevKey)
+                .setLastValue(prevValue)
                 .setNewLogEntryKey(newKey)
                 .setNewLogEntryValue(newValue)
                 .build();

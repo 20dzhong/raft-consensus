@@ -29,9 +29,9 @@ message AppendEntriesRequest {
     // leader's commit index commit or not
     int32 commit = 3;
     // last log index
-    int32 last_log_index = 4;
+    string last_key = 4;
     // last log entry
-    int32 last_log_entry = 5;
+    string last_value = 5;
     // new log entry, none for heartbeat
     string new_log_entry_key = 6;
     // new log entry value, none for heartbeat

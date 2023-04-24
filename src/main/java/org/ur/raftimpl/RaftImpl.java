@@ -2,6 +2,9 @@ package org.ur.raftimpl;
 
 import io.grpc.stub.StreamObserver;
 
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -24,13 +27,23 @@ public class RaftImpl extends RaftServerGrpc.RaftServerImplBase {
     AtomicBoolean receivedHeartbeat;
     AtomicReference<RaftNode.State> nodeState;
     AtomicInteger votedFor;
+    ConcurrentHashMap<String, String> log;
 
-    public RaftImpl(int port, NodeVar sVar) {
+
+    AtomicReference<String> lastKey;
+    AtomicReference<String> lastVal;
+    Queue<String> qKey = new LinkedList<>();
+    Queue<String> qVal = new LinkedList<>();
+
+    public RaftImpl(int port, NodeVar nV) {
         this.port = port;
-        this.term = sVar.term;
-        this.votedFor = sVar.votedFor;
-        this.nodeState = sVar.nodeState;
-        this.receivedHeartbeat = sVar.receivedHeartBeat;
+        this.log = nV.logs;
+        this.term = nV.term;
+        this.lastKey = nV.lastKey;
+        this.lastVal = nV.lastVal;
+        this.votedFor = nV.votedFor;
+        this.nodeState = nV.nodeState;
+        this.receivedHeartbeat = nV.receivedHeartBeat;
     }
 
 
@@ -50,7 +63,6 @@ public class RaftImpl extends RaftServerGrpc.RaftServerImplBase {
             }
         }
 
-
         VoteResponse response = VoteResponse.newBuilder()
                 .setGranted(granted)
                 .setTerm(this.term.get())
@@ -64,19 +76,43 @@ public class RaftImpl extends RaftServerGrpc.RaftServerImplBase {
     public void appendEntries(AppendEntriesRequest request, StreamObserver<AppendEntriesResponse> responseObserver) {
         String newKey = request.getNewLogEntryKey();
         String newValue = request.getNewLogEntryValue();
-        int term = request.getTerm();
+        boolean success = request.getTerm() >= this.term.get();
 
         AppendEntriesResponse response;
 
-        // if log entry is empty then it is a heartbeat request
-        if (newKey.isEmpty() || newValue.isEmpty()) {
-            this.receivedHeartbeat.set(true);
-            response = AppendEntriesResponse.newBuilder()
-                    .setTerm(this.term.get())
-                    .setSuccess(true)
-                    .build();
-            responseObserver.onNext(response);
-            responseObserver.onCompleted();
+        if (request.getCommit() == 1) {
+//            System.out.println("Adding into state log");
+            while (!qKey.isEmpty() && !qVal.isEmpty()) {
+                // put key and value into state
+                log.put(qKey.remove(), qVal.remove());
+            }
         }
+
+        // if log entry is empty then it is a heartbeat request
+        if (!newKey.isEmpty() && !newValue.isEmpty()) {
+            // if matches, add to buffer, if not, add last value
+            if (request.getLastKey().equals(this.lastKey.get()) && request.getLastValue().equals(this.lastVal.get())) {
+//                System.out.println("Adding entry to buffer");
+            } else {
+                // not full implementation of log replication
+                System.out.println("My prev: " + this.lastKey.get() + " Their Prev: " + request.getLastKey());
+//                System.out.println("Entry not matched!");
+                log.put(this.lastKey.get(), this.lastVal.get());
+            }
+            this.qKey.add(newKey);
+            this.qVal.add(newValue);
+            this.lastKey.set(newKey);
+            this.lastVal.set(newValue);
+        }
+
+        // set heartbeat to true and return response
+        this.receivedHeartbeat.set(true);
+        response = AppendEntriesResponse.newBuilder()
+                .setTerm(this.term.get())
+                .setSuccess(success)
+                .build();
+        responseObserver.onNext(response);
+        responseObserver.onCompleted();
     }
 }
+

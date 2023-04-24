@@ -19,17 +19,17 @@ public class RaftServer {
 
     private Server server;
     int port;
-    NodeVar sVar;
+    NodeVar nV;
 
-    public RaftServer(int port, NodeVar sVar) {
+    public RaftServer(int port, NodeVar nV) {
         this.port = port;
-        this.sVar = sVar;
+        this.nV = nV;
     }
 
     public void start() throws IOException {
         /* The port on which the server should run */
         server = ServerBuilder.forPort(port)
-                .addService(new RaftImpl(port, sVar))
+                .addService(new RaftImpl(port, nV))
                 .build()
                 .start();
 

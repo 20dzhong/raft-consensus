@@ -16,4 +16,5 @@ Note: pretty fast, look at comments in RaftNode
 
 Note: not *true* raft since it's not true parallelism, since it uses gRPC response/request, not streaming, so some parts will be modified
 
-Note: CAP theorem, which one? Cannot account for network partition but does everything else pretty well
+Note: CAP theorem, which one? Cannot account for network partition but does everything else pretty well. Cannot match log if system comes online after shut off 
+but can tolerate complete failures
