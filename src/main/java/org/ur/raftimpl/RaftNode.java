@@ -4,6 +4,8 @@ import org.ur.comms.AppendEntriesResponse;
 import org.ur.comms.VoteResponse;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.*;
@@ -82,6 +84,8 @@ public class RaftNode {
         this.start();
 
         timeoutCycle = () -> {
+
+            System.out.println("nodeID: " + nodeID + " logs: " + Collections.singletonList(this.nV.logs));
             if (!nV.receivedHeartBeat.get()) {
                 // timed out, no heartbeat received
                 System.out.println("nodeID: " + nodeID + " Heartbeat not received, timing out");
@@ -230,12 +234,12 @@ public class RaftNode {
         } else {
             // dequeue one at a time
             int totalResponse = 1;
-            boolean newMsg = false;
+            boolean incomingMsg = false;
 
             if (!newKeys.isEmpty()) {
                 newKey = newKeys.poll();
                 newValue = newValues.poll();
-                newMsg = true;
+                incomingMsg = true;
             }
 
             // once a candidate becomes a leader, it sends heartbeat messages to establish authority
@@ -258,7 +262,7 @@ public class RaftNode {
             this.nV.lastKey.set(newKey);
             this.nV.lastVal.set(newValue);
 
-            this.commitChange = (newMsg)? 0 : -1;
+            this.commitChange = (incomingMsg)? 0 : -1;
 
             if (totalVotes > (uV.totalNodes.get() / 2)) {
                 if (this.commitChange == 0) {

@@ -1,6 +1,5 @@
 package org.ur.raftimpl;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
@@ -14,6 +13,7 @@ public class RaftSystem {
       This kick starts N RaftNodes, node.start starts running the server
 
      */
+
     UniversalVar uV;
     ArrayList<RaftNode> nodeList = new ArrayList<>();
 
@@ -23,18 +23,17 @@ public class RaftSystem {
         Random rand = new Random();
         for (int i = 0; i < nodeNum; i++) {
             // increment by 1 for delay and port base to prevent overlapping initialization
-            nodeList.add(new RaftNode(i, portBase + i, uV, rand.nextInt(10), initDelay + i));
+            nodeList.add(new RaftNode(i, portBase + i, uV, rand.nextInt(5), initDelay + i));
         }
 
         Thread.sleep((initDelay + 1) * 1000L);
     }
 
     public String get(String key) {
-       return nodeList.get(uV.leaderID.get()).get(key);
+        return nodeList.get(uV.leaderID.get()).get(key);
     }
 
     public void put(String key, String value) {
-        System.out.println("Put: " + key + " : " + value);
         nodeList.get(uV.leaderID.get()).put(key, value);
     }
 
@@ -54,8 +53,13 @@ public class RaftSystem {
         RaftSystem raft = new RaftSystem(4, 50051, uV, 5);
 
         raft.put("Hello", "World");
+        raft.put("Hello", "Qasim");
+        raft.put("Donovan", "Zhong");
+        raft.put("Raft", "gRPC");
+        raft.put("Damn", "it");
+
         Thread.sleep(500);
-        System.out.println("Get: " + raft.get("Hello"));
+//        System.out.println("Get: " + raft.get("Hello"));
 
         // since each node starts a server and client, give time for server to boot up
     }
