@@ -7,4 +7,13 @@
 * ``RaftNode``: combines gRPC server and client to create a node capable of responding and sending messages
 * ``RaftSystem``: the entire raft system with multiple raft nodes
 
-Note that most logic happens in RaftNode
+Note: that most logic happens in RaftNode
+
+Note: that for evaluation, we are looking for how fast it will store something and have it reflect
+on every system, not how fast it will get and put (although that can be tested as well)
+
+Note: pretty fast, look at comments in RaftNode
+
+Note: not *true* raft since it's not true parallelism, since it uses gRPC response/request, not streaming, so some parts will be modified
+
+Note: CAP theorem, which one? Cannot account for network partition but does everything else pretty well

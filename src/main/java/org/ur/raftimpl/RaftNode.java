@@ -4,8 +4,10 @@ import org.ur.comms.AppendEntriesResponse;
 import org.ur.comms.VoteResponse;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class RaftNode {
@@ -35,7 +37,9 @@ public class RaftNode {
 
     // a clump of Atomic values that needs to be passed around, clumped together for simplicity in code
     // not sure if best idea
-    SharedVar sVar = new SharedVar();
+    NodeVar sV = new NodeVar();
+    UniversalVar uV;
+
 
     // all variables related to the task of time out loop and heartbeat loop
     ScheduledExecutorService executor;
@@ -46,31 +50,39 @@ public class RaftNode {
     Runnable timeoutCycle;
     Runnable heartbeatCycle;
 
-    int timeout;
-    int initDelay;
-    int heartbeatInterval = 1;
-    TimeUnit unit = TimeUnit.SECONDS;
+    // TODO these values need tweaking
+    // broadcastTime << electionTimeout << mean time between failures of participants
+    int timeout; // timeout between 50 to 500 ms, we won't have a lot of timeouts so we can set it higher
+    int initDelay; // suggested to be 10s+ to give server time to start
+    int heartbeatInterval = 1; // sending heartbeat to 10 nodes takes from 10 to 40 ms, and to 3 nodes 5 - 20 ms choose depending on node number
+    TimeUnit unit = TimeUnit.SECONDS; // suggested using milliseconds
 
-    public RaftNode(int nodeID, int port, ConcurrentHashMap<Integer, RaftClient> accessibleClients, AtomicInteger totalNodes, int timeout, int initDelay) {
+    // log replication elements
+    Queue<String> newKeys = new LinkedList<>();
+    Queue<String> newValues = new LinkedList<>();
 
+    ArrayList<String> logIndex = new ArrayList<>();
+
+
+    public RaftNode(int nodeID, int port, UniversalVar uV, int timeout, int initDelay) {
         this.nodeID = nodeID;
         this.port = port;
         this.timeout = timeout;
-
-        this.sVar.accessibleClients = accessibleClients;
-        this.sVar.totalNodes = totalNodes;
         this.initDelay = initDelay;
+        this.uV = uV;
+
 
         // if id already exist, do nothing
-        if (accessibleClients.get(nodeID) != null) {
+        if (this.uV.accessibleClients.get(nodeID) != null) {
             System.out.println("nodeID: " + nodeID + " is taken, please try something else, exiting...");
+            return;
         }
 
         // start server and client on port number
         this.start();
 
         timeoutCycle = () -> {
-            if (!sVar.receivedHeartBeat.get()) {
+            if (!sV.receivedHeartBeat.get()) {
                 // timed out, no heartbeat received
                 System.out.println("nodeID: " + nodeID + " Heartbeat not received, timing out");
                 selfElect();
@@ -78,7 +90,7 @@ public class RaftNode {
                 System.out.println("nodeID: " + nodeID + " Heartbeat received");
             }
             // reset heartbeat
-            sVar.receivedHeartBeat.set(false);
+            sV.receivedHeartBeat.set(false);
         };
 
         heartbeatCycle = this::sendHeartBeat;
@@ -90,7 +102,7 @@ public class RaftNode {
     // starting the node
     private void start() {
         // kickstart server and client
-        this.sVar.totalNodes.incrementAndGet();
+        this.uV.totalNodes.incrementAndGet();
         this.startClient();
         this.startServer();
     }
@@ -101,7 +113,7 @@ public class RaftNode {
         Thread serverThread = new Thread(() -> {
             try {
                 // setting up the server with those variables allows the server thread to edit those variables
-                final RaftServer server = new RaftServer(port, sVar);
+                final RaftServer server = new RaftServer(port, sV);
                 server.start();
                 server.blockUntilShutdown();
             } catch (IOException | InterruptedException e) {
@@ -116,7 +128,7 @@ public class RaftNode {
     // starting gRPC client
     private void startClient() {
         // put new client into hashmap to create an entry point into this node
-        sVar.accessibleClients.putIfAbsent(this.nodeID, new RaftClient("localhost", port));
+        uV.accessibleClients.putIfAbsent(this.nodeID, new RaftClient("localhost", port));
     }
 
     // starting the timeout cycle
@@ -126,7 +138,7 @@ public class RaftNode {
 
     // stopping the timeout cycle
     private void stopHeartBeatMonitor() {
-        if (sVar.nodeState.get() != State.LEADER) {
+        if (sV.nodeState.get() != State.LEADER) {
             System.out.println("nodeID: " + nodeID + " Cannot stop timeout monitor since node is not a leader");
             return;
         }
@@ -135,7 +147,7 @@ public class RaftNode {
 
     // starting the heartbeat from leader
     private void startHeartBeat() {
-        if (sVar.nodeState.get() != State.LEADER) {
+        if (sV.nodeState.get() != State.LEADER) {
             System.out.println("nodeID: " + nodeID + " Cannot start heartbeat since node is not a leader");
         }
         heartbeatTask = executor.scheduleWithFixedDelay(heartbeatCycle, 0, heartbeatInterval, unit);
@@ -146,6 +158,7 @@ public class RaftNode {
         heartbeatTask.cancel(false);
     }
 
+    // elect self when timed out
     public void selfElect() {
         System.out.println("nodeID: " + nodeID + " Election started for");
 
@@ -153,19 +166,19 @@ public class RaftNode {
         // auto voted for self & increment self term by 1
         int totalVotes = 1;
         int totalResponse = 1;
-        this.sVar.term.incrementAndGet();
+        this.sV.term.incrementAndGet();
 
-        this.sVar.nodeState.set(State.CANDIDATE);
+        this.sV.nodeState.set(State.CANDIDATE);
 
         // gather votes
-        for (int i = 0; i < sVar.totalNodes.get(); i++) {
+        for (int i = 0; i < uV.totalNodes.get(); i++) {
             if (i == nodeID) {
                 continue;
             }
 
             try {
                 // contacting gRPC clients
-                VoteResponse response = sVar.accessibleClients.get(i).requestVote(i, sVar.term.get());
+                VoteResponse response = uV.accessibleClients.get(i).requestVote(i, sV.term.get());
                 totalResponse++;
                 if (response.getGranted()) {
                     totalVotes++;
@@ -179,21 +192,19 @@ public class RaftNode {
         checkNodeFailure(totalResponse);
 
         // if candidate gets the majority of votes, then becomes leader
-        if (totalVotes > (sVar.totalNodes.get() / 2)) {
-            if (sVar.receivedHeartBeat.get()) {
+        if (totalVotes > (uV.totalNodes.get() / 2)) {
+            if (sV.receivedHeartBeat.get()) {
                 // heart beat was received from new / previous leader during requesting votes
-                if (sVar.leaderTerm.get() >= this.sVar.term.get()) {
-                    // if leader term is at least as large as candidate current term, candidate recognize leader and return to follower
-                    this.sVar.nodeState.set(State.FOLLOWER);
-                    this.sVar.term.set(sVar.leaderTerm.get());
-                    return;
-                }
+                this.sV.nodeState.set(State.FOLLOWER);
+                return;
             } else {
-                this.sVar.nodeState.set(State.LEADER);
+                this.sV.nodeState.set(State.LEADER);
+                this.uV.leaderID.set(nodeID);
                 System.out.println("nodeID: " + nodeID + " Votes: " + totalVotes);
                 System.out.println("nodeID: " + nodeID + " New leader established!\n");
                 // send heartbeat to others to assert dominance once leader
                 // stop heartbeat monitor
+                this.sV.receivedHeartBeat.set(false);
                 this.stopHeartBeatMonitor();
                 this.startHeartBeat();
                 return;
@@ -201,38 +212,60 @@ public class RaftNode {
         }
 
         System.out.println("nodeID: " + nodeID + " Voting tie/failed, candidate reverting to follower");
-        this.sVar.nodeState.set(State.FOLLOWER);
+        this.sV.nodeState.set(State.FOLLOWER);
     }
 
+    // function used in startHeartBeat
     public void sendHeartBeat() {
-        System.out.println("nodeID: " + nodeID + " Sending heartbeat");
-        int totalResponse = 1;
-        // once a candidate becomes a leader, it sends heartbeat messages to establish authority
-        for (int i = 0; i < sVar.totalNodes.get(); i++) {
-            if (i == nodeID) {
-                continue;
-            }
-            try {
-                AppendEntriesResponse response = sVar.accessibleClients.get(i)
-                        .appendEntry(this.nodeID, this.sVar.term.get(), 0, 0, 0, "", "");
-                totalResponse++;
-            } catch (Exception e) {
-                System.out.println("\nnodeID: " + nodeID + " EXCEPTION OCCURRED IN SENDING HEARTBEAT, ASSUMING FOLLOWER IS DOWN");
-            }
-        }
+        // another leader exists, step down as leader
+        final long startTime = System.nanoTime();
 
-        // check the total number of response, if response is not equal to the totalNodes, there can be two explanations
-        checkNodeFailure(totalResponse);
+        if (this.sV.receivedHeartBeat.get()) {
+            System.out.println("nodeID: " + nodeID + " Another leader is found, reverting back to follower");
+            this.sV.nodeState.set(State.FOLLOWER);
+            this.stopHeartBeat();
+            this.startHeartBeatMonitor();
+        } else {
+            int totalResponse = 1;
+            String newKey = newKeys.isEmpty() ? "" : newKeys.poll();
+            String newValue = newValues.isEmpty() ? "" : newValues.poll();
+
+            // once a candidate becomes a leader, it sends heartbeat messages to establish authority
+            for (int i = 0; i < uV.totalNodes.get(); i++) {
+                if (i == nodeID) {
+                    continue;
+                }
+                try {
+                    AppendEntriesResponse response = uV.accessibleClients.get(i)
+                            .appendEntry(this.nodeID, this.sV.term.get(), 0, 0, 0, newKey, newValue);
+                    totalResponse++;
+                } catch (Exception e) {
+                    System.out.println("\nnodeID: " + nodeID + " EXCEPTION OCCURRED IN SENDING HEARTBEAT, ASSUMING FOLLOWER IS DOWN");
+                }
+            }
+
+            // check the total number of response, if response is not equal to the totalNodes, there can be two explanations
+            checkNodeFailure(totalResponse);
+            final long duration = System.nanoTime() - startTime;
+            System.out.println("Send heartbeat operation: " + (duration / 1000000));
+
+        }
     }
 
+    // helper logic
     private void checkNodeFailure(int totalResponse) {
-        if (totalResponse < sVar.totalNodes.get()) {
+        if (totalResponse < uV.totalNodes.get()) {
             System.out.println("nodeID: " + nodeID + " Could not reach a follower, assuming that follower is down");
-            sVar.totalNodes.decrementAndGet();
-        } else if (totalResponse > sVar.totalNodes.get()) {
+            uV.totalNodes.decrementAndGet();
+        } else if (totalResponse > uV.totalNodes.get()) {
             System.out.println("nodeID: " + nodeID + " Contacted a previously unreachable node, assume that follower is up");
-            sVar.totalNodes.incrementAndGet();
+            uV.totalNodes.incrementAndGet();
         }
     }
 
+    // helper put
+    public void put(String key, String value) {
+        this.newKeys.add(key);
+        this.newValues.add(value);
+    }
 }

@@ -15,20 +15,20 @@ public class RaftSystem {
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
-        AtomicInteger totalNodes = new AtomicInteger(0);
 
         // this hashmap is where you store all the clients, this way RaftNode can communicate between different servers
 
         // it's vital to create the nodeID in incremental digits starting from 0, a lot of functions depends on assuming
         // that it has an incremental ordering
 
+        AtomicInteger totalNodes = new AtomicInteger(0);
+        AtomicInteger leaderID = new AtomicInteger(-1);
         ConcurrentHashMap<Integer, RaftClient> accessibleClients = new ConcurrentHashMap<>();
+        UniversalVar uV = new UniversalVar(accessibleClients, totalNodes, leaderID);
 
-        RaftNode node0 = new RaftNode(0, 50051, accessibleClients, totalNodes, 7, 3);
-        RaftNode node1 = new RaftNode(1, 50052, accessibleClients, totalNodes, 8, 5);
-        RaftNode node2 = new RaftNode(2, 50053, accessibleClients, totalNodes, 9, 3);
-        RaftNode node3 = new RaftNode(3, 50054, accessibleClients, totalNodes, 5, 7);
-        RaftNode node4 = new RaftNode(4, 50055, accessibleClients, totalNodes, 3, 8);
+        RaftNode node0 = new RaftNode(0, 50051, uV, 7, 3);
+        RaftNode node1 = new RaftNode(1, 50052, uV, 8, 5);
+        RaftNode node2 = new RaftNode(2, 50053, uV, 9, 3);
 
         // since each node starts a server and client, give time for server to boot up
         Thread.sleep(2000);

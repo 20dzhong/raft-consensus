@@ -21,17 +21,15 @@ public class RaftImpl extends RaftServerGrpc.RaftServerImplBase {
 
     int port; // debugging
     AtomicInteger term;
-    AtomicInteger leaderTerm;
     AtomicBoolean receivedHeartbeat;
     AtomicReference<RaftNode.State> nodeState;
     AtomicInteger votedFor;
 
-    public RaftImpl(int port, SharedVar sVar) {
+    public RaftImpl(int port, NodeVar sVar) {
         this.port = port;
         this.term = sVar.term;
         this.votedFor = sVar.votedFor;
         this.nodeState = sVar.nodeState;
-        this.leaderTerm = sVar.leaderTerm;
         this.receivedHeartbeat = sVar.receivedHeartBeat;
     }
 

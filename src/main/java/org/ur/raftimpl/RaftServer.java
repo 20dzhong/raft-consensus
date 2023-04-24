@@ -19,9 +19,9 @@ public class RaftServer {
 
     private Server server;
     int port;
-    SharedVar sVar;
+    NodeVar sVar;
 
-    public RaftServer(int port, SharedVar sVar) {
+    public RaftServer(int port, NodeVar sVar) {
         this.port = port;
         this.sVar = sVar;
     }
@@ -33,7 +33,7 @@ public class RaftServer {
                 .build()
                 .start();
 
-        System.out.printf("Server started, listening on %d%n", port);
+        System.out.printf("Server started, listening on %d%n\n", port);
         Runtime.getRuntime().addShutdownHook(
                 new Thread(() -> {
                     // Use stderr here since the logger may have been reset by its JVM shutdown hook.
