@@ -63,7 +63,7 @@ public class RaftNode {
 
         // if id already exist, do nothing
         if (accessibleClients.get(nodeID) != null) {
-            System.out.println("nodeID: " + nodeID + "is taken, please try something else, exiting...");
+            System.out.println("nodeID: " + nodeID + " is taken, please try something else, exiting...");
         }
 
         // start server and client on port number
@@ -72,10 +72,10 @@ public class RaftNode {
         timeoutCycle = () -> {
             if (!sVar.receivedHeartBeat.get()) {
                 // timed out, no heartbeat received
-                System.out.println("Heartbeat not received, timing out: " + nodeID);
+                System.out.println("nodeID: " + nodeID + " Heartbeat not received, timing out");
                 selfElect();
             } else {
-                System.out.println("Heartbeat received: " + nodeID);
+                System.out.println("nodeID: " + nodeID + " Heartbeat received");
             }
             // reset heartbeat
             sVar.receivedHeartBeat.set(false);
@@ -127,7 +127,7 @@ public class RaftNode {
     // stopping the timeout cycle
     private void stopHeartBeatMonitor() {
         if (sVar.nodeState.get() != State.LEADER) {
-            System.out.println("Cannot stop timeout monitor since node is not a leader" + nodeID);
+            System.out.println("nodeID: " + nodeID + " Cannot stop timeout monitor since node is not a leader");
             return;
         }
         timeoutTask.cancel(false);
@@ -136,7 +136,7 @@ public class RaftNode {
     // starting the heartbeat from leader
     private void startHeartBeat() {
         if (sVar.nodeState.get() != State.LEADER) {
-            System.out.println("Cannot start heartbeat since node is not a leader" + nodeID);
+            System.out.println("nodeID: " + nodeID + " Cannot start heartbeat since node is not a leader");
         }
         heartbeatTask = executor.scheduleWithFixedDelay(heartbeatCycle, 0, heartbeatInterval, unit);
     }
@@ -147,11 +147,12 @@ public class RaftNode {
     }
 
     public void selfElect() {
-        System.out.println("Election started for: " + nodeID);
+        System.out.println("nodeID: " + nodeID + " Election started for");
 
         // this function is used to change state from a follower to a candidate and this will sent out requestVote messages to all followers
         // auto voted for self & increment self term by 1
         int totalVotes = 1;
+        int totalResponse = 1;
         this.sVar.term.incrementAndGet();
 
         this.sVar.nodeState.set(State.CANDIDATE);
@@ -162,12 +163,20 @@ public class RaftNode {
                 continue;
             }
 
-            VoteResponse response = sVar.accessibleClients.get(i).requestVote(i, sVar.term.get());
-
-            if (response.getGranted()) {
-                totalVotes++;
+            try {
+                // contacting gRPC clients
+                VoteResponse response = sVar.accessibleClients.get(i).requestVote(i, sVar.term.get());
+                totalResponse++;
+                if (response.getGranted()) {
+                    totalVotes++;
+                }
+            } catch (Exception e) {
+                System.out.println("\nnodeID: " + nodeID + " EXCEPTION OCCURRED IN REQUESTING VOTES, ASSUMING FOLLOWER IS DOWN");
             }
         }
+
+        // check the total number of response, if response is not equal to the totalNodes, there can be two explanations
+        checkNodeFailure(totalResponse);
 
         // if candidate gets the majority of votes, then becomes leader
         if (totalVotes > (sVar.totalNodes.get() / 2)) {
@@ -181,8 +190,8 @@ public class RaftNode {
                 }
             } else {
                 this.sVar.nodeState.set(State.LEADER);
-                System.out.println("Votes: " + totalVotes + " " + nodeID);
-                System.out.println("New leader established: " + nodeID);
+                System.out.println("nodeID: " + nodeID + " Votes: " + totalVotes);
+                System.out.println("nodeID: " + nodeID + " New leader established!\n");
                 // send heartbeat to others to assert dominance once leader
                 // stop heartbeat monitor
                 this.stopHeartBeatMonitor();
@@ -191,21 +200,38 @@ public class RaftNode {
             }
         }
 
-        System.out.println("Voting tie/failed, candidate reverting to follower " + nodeID);
+        System.out.println("nodeID: " + nodeID + " Voting tie/failed, candidate reverting to follower");
         this.sVar.nodeState.set(State.FOLLOWER);
-        return;
     }
 
     public void sendHeartBeat() {
-        System.out.println("Sending heartbeat from: " + nodeID);
+        System.out.println("nodeID: " + nodeID + " Sending heartbeat");
+        int totalResponse = 1;
         // once a candidate becomes a leader, it sends heartbeat messages to establish authority
         for (int i = 0; i < sVar.totalNodes.get(); i++) {
             if (i == nodeID) {
                 continue;
             }
-            // todo replace commit index
-            AppendEntriesResponse response = sVar.accessibleClients.get(i)
-                    .appendEntry(this.nodeID, this.sVar.term.get(), 0, 0, 0, "", "");
+            try {
+                AppendEntriesResponse response = sVar.accessibleClients.get(i)
+                        .appendEntry(this.nodeID, this.sVar.term.get(), 0, 0, 0, "", "");
+                totalResponse++;
+            } catch (Exception e) {
+                System.out.println("\nnodeID: " + nodeID + " EXCEPTION OCCURRED IN SENDING HEARTBEAT, ASSUMING FOLLOWER IS DOWN");
+            }
+        }
+
+        // check the total number of response, if response is not equal to the totalNodes, there can be two explanations
+        checkNodeFailure(totalResponse);
+    }
+
+    private void checkNodeFailure(int totalResponse) {
+        if (totalResponse < sVar.totalNodes.get()) {
+            System.out.println("nodeID: " + nodeID + " Could not reach a follower, assuming that follower is down");
+            sVar.totalNodes.decrementAndGet();
+        } else if (totalResponse > sVar.totalNodes.get()) {
+            System.out.println("nodeID: " + nodeID + " Contacted a previously unreachable node, assume that follower is up");
+            sVar.totalNodes.incrementAndGet();
         }
     }
 

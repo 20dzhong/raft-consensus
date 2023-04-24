@@ -179,7 +179,11 @@ public class HelloWorldClient implements Closeable {
                 name = args[0]; /* Use the arg as the name to greet if provided */
 
             // client calling on response from servers
-            client.sayHelloWithManyRequestsAndReplies(name);
+            try {
+                client.sayHello(name);
+            } catch (Exception e) {
+                System.out.println(e);
+            }
         }
     }
 }

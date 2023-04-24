@@ -29,7 +29,6 @@ public class RaftSystem {
         RaftNode node2 = new RaftNode(2, 50053, accessibleClients, totalNodes, 9, 3);
         RaftNode node3 = new RaftNode(3, 50054, accessibleClients, totalNodes, 5, 7);
         RaftNode node4 = new RaftNode(4, 50055, accessibleClients, totalNodes, 3, 8);
-//        RaftNode node2 = new RaftNode(2, 50053, accessibleClients, totalNodes, 60);
 
         // since each node starts a server and client, give time for server to boot up
         Thread.sleep(2000);
