@@ -33,15 +33,6 @@ public class RaftNode {
     int nodeID; // id
     int port; // port
 
-
-    // shared values
-//    ConcurrentHashMap<Integer, RaftClient> accessibleClients; // map of all client objects
-//    AtomicInteger totalNodes; // total number of nodes
-//    AtomicInteger term = new AtomicInteger(1); // default term of the node
-//    AtomicInteger votedFor = new AtomicInteger(-1);
-//    AtomicBoolean receivedHeartBeat = new AtomicBoolean(false); // whether or not you received a heartbeat this term
-//    AtomicInteger leaderTerm = new AtomicInteger(0); // term of the leader
-//    AtomicReference<State> nodeState = new AtomicReference<>(State.FOLLOWER);
     // a clump of Atomic values that needs to be passed around, clumped together for simplicity in code
     // not sure if best idea
     SharedVar sVar = new SharedVar();
@@ -155,7 +146,7 @@ public class RaftNode {
         heartbeatTask.cancel(false);
     }
 
-    public boolean selfElect() {
+    public void selfElect() {
         System.out.println("Election started for: " + nodeID);
 
         // this function is used to change state from a follower to a candidate and this will sent out requestVote messages to all followers
@@ -186,7 +177,7 @@ public class RaftNode {
                     // if leader term is at least as large as candidate current term, candidate recognize leader and return to follower
                     this.sVar.nodeState.set(State.FOLLOWER);
                     this.sVar.term.set(sVar.leaderTerm.get());
-                    return false;
+                    return;
                 }
             } else {
                 this.sVar.nodeState.set(State.LEADER);
@@ -196,13 +187,13 @@ public class RaftNode {
                 // stop heartbeat monitor
                 this.stopHeartBeatMonitor();
                 this.startHeartBeat();
-                return true;
+                return;
             }
         }
 
         System.out.println("Voting tie/failed, candidate reverting to follower " + nodeID);
         this.sVar.nodeState.set(State.FOLLOWER);
-        return false;
+        return;
     }
 
     public void sendHeartBeat() {

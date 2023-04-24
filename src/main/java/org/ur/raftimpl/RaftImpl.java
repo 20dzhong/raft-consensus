@@ -1,16 +1,11 @@
 package org.ur.raftimpl;
 
-import com.google.common.collect.Lists;
 import io.grpc.stub.StreamObserver;
 
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.IntStream;
 
-import io.grpc.stub.StreamObservers;
 import org.ur.comms.*;
 
 public class RaftImpl extends RaftServerGrpc.RaftServerImplBase {
