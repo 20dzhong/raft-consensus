@@ -10,21 +10,22 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.*;
 
-
 public class RaftNode {
 
     /*
-
-      This represent individual Raft Nodes by using a combination of gRPC client and server and attaching them
-      to this class.
-
-      This is where most stuff happens
-
-      This class kickstarts the server, which can respond, and starts the client, which can request
-
-      This is where the most of the logic will take place,
-      for example, node state (follower, candidate, leader), timeouts, logs, etc.
-
+     * 
+     * This represent individual Raft Nodes by using a combination of gRPC client
+     * and server and attaching them
+     * to this class.
+     * 
+     * This is where most stuff happens
+     * 
+     * This class kickstarts the server, which can respond, and starts the client,
+     * which can request
+     * 
+     * This is where the most of the logic will take place,
+     * for example, node state (follower, candidate, leader), timeouts, logs, etc.
+     * 
      */
 
     enum State {
@@ -36,11 +37,11 @@ public class RaftNode {
     int nodeID; // id
     int port; // port
 
-    // a clump of Atomic values that needs to be passed around, clumped together for simplicity in code
+    // a clump of Atomic values that needs to be passed around, clumped together for
+    // simplicity in code
     // not sure if best idea
     NodeVar nV = new NodeVar();
     UniversalVar uV;
-
 
     // all variables related to the task of time out loop and heartbeat loop
     ScheduledExecutorService executor;
@@ -52,19 +53,22 @@ public class RaftNode {
     Runnable heartbeatCycle;
 
     // TODO these values need tweaking
-    // broadcastTime << electionTimeout << mean time between failures of participants
-    int timeout; // timeout between 50 to 500 ms, we won't have a lot of timeouts so we can set it higher
-    int initDelay; // suggested to be 10s+ to give server time to start
-    int heartbeatInterval = 1; // sending heartbeat to 10 nodes takes from 10 to 40 ms, and to 3 nodes 5 - 20 ms choose depending on node number
+    // broadcastTime << electionTimeout << mean time between failures of
+    // participants
+    long timeout = 500L; // timeout between 50 to 500 ms, we won't have a lot of timeouts so we can set
+                         // it higher
+    long initDelay = 10000L; // suggested to be 10s+ to give server time to start
+    int heartbeatInterval = 1; // sending heartbeat to 10 nodes takes from 10 to 40 ms, and to 3 nodes 5 - 20
+                               // ms choose depending on node number
     TimeUnit unit = TimeUnit.SECONDS; // suggested using milliseconds
 
     // log replication elements
     Queue<String> newKeys = new LinkedList<>();
     Queue<String> newValues = new LinkedList<>();
 
-    // -1 represent heartbeat, 0 represent there were entries in the previous term and there was a majority vote, 1 means commit
+    // -1 represent heartbeat, 0 represent there were entries in the previous term
+    // and there was a majority vote, 1 means commit
     int commitChange = -1;
-
 
     public RaftNode(int nodeID, int port, UniversalVar uV, int timeout, int initDelay) {
         this.nodeID = nodeID;
@@ -72,7 +76,6 @@ public class RaftNode {
         this.timeout = timeout;
         this.initDelay = initDelay;
         this.uV = uV;
-
 
         // if id already exist, do nothing
         if (this.uV.accessibleClients.get(nodeID) != null) {
@@ -116,7 +119,8 @@ public class RaftNode {
         // kickstart server creating new thread
         Thread serverThread = new Thread(() -> {
             try {
-                // setting up the server with those variables allows the server thread to edit those variables
+                // setting up the server with those variables allows the server thread to edit
+                // those variables
                 final RaftServer server = new RaftServer(port, nV);
                 server.start();
                 server.blockUntilShutdown();
@@ -166,7 +170,8 @@ public class RaftNode {
     public void selfElect() {
         System.out.println("nodeID: " + nodeID + " Election started for");
 
-        // this function is used to change state from a follower to a candidate and this will sent out requestVote messages to all followers
+        // this function is used to change state from a follower to a candidate and this
+        // will sent out requestVote messages to all followers
         // auto voted for self & increment self term by 1
         int totalVotes = 1;
         int totalResponse = 1;
@@ -188,11 +193,13 @@ public class RaftNode {
                     totalVotes++;
                 }
             } catch (Exception e) {
-                System.out.println("\nnodeID: " + nodeID + " EXCEPTION OCCURRED IN REQUESTING VOTES, ASSUMING FOLLOWER IS DOWN");
+                System.out.println(
+                        "\nnodeID: " + nodeID + " EXCEPTION OCCURRED IN REQUESTING VOTES, ASSUMING FOLLOWER IS DOWN");
             }
         }
 
-        // check the total number of response, if response is not equal to the totalNodes, there can be two explanations
+        // check the total number of response, if response is not equal to the
+        // totalNodes, there can be two explanations
         checkNodeFailure(totalResponse);
 
         // if candidate gets the majority of votes, then becomes leader
@@ -242,27 +249,30 @@ public class RaftNode {
                 incomingMsg = true;
             }
 
-            // once a candidate becomes a leader, it sends heartbeat messages to establish authority
+            // once a candidate becomes a leader, it sends heartbeat messages to establish
+            // authority
             for (int i = 0; i < uV.totalNodes.get(); i++) {
                 if (i == nodeID) {
                     continue;
                 }
                 try {
                     AppendEntriesResponse response = uV.accessibleClients.get(i)
-                            .appendEntry(this.nodeID, this.nV.term.get(), this.commitChange, this.nV.lastKey.get(), this.nV.lastVal.get(), newKey, newValue);
+                            .appendEntry(this.nodeID, this.nV.term.get(), this.commitChange, this.nV.lastKey.get(),
+                                    this.nV.lastVal.get(), newKey, newValue);
 
                     if (response.getSuccess()) {
                         totalVotes++;
                     }
                     totalResponse++;
                 } catch (Exception e) {
-                    System.out.println("\nnodeID: " + nodeID + " EXCEPTION OCCURRED IN SENDING HEARTBEAT, ASSUMING FOLLOWER IS DOWN");
+                    System.out.println("\nnodeID: " + nodeID
+                            + " EXCEPTION OCCURRED IN SENDING HEARTBEAT, ASSUMING FOLLOWER IS DOWN");
                 }
             }
             this.nV.lastKey.set(newKey);
             this.nV.lastVal.set(newValue);
 
-            this.commitChange = (incomingMsg)? 0 : -1;
+            this.commitChange = (incomingMsg) ? 0 : -1;
 
             if (totalVotes > (uV.totalNodes.get() / 2)) {
                 if (this.commitChange == 0) {
@@ -271,7 +281,8 @@ public class RaftNode {
                 }
             }
 
-            // check the total number of response, if response is not equal to the totalNodes, there can be two explanations
+            // check the total number of response, if response is not equal to the
+            // totalNodes, there can be two explanations
             checkNodeFailure(totalResponse);
         }
     }
@@ -282,7 +293,8 @@ public class RaftNode {
             System.out.println("nodeID: " + nodeID + " Could not reach a follower, assuming that follower is down");
             uV.totalNodes.decrementAndGet();
         } else if (totalResponse > uV.totalNodes.get()) {
-            System.out.println("nodeID: " + nodeID + " Contacted a previously unreachable node, assume that follower is up");
+            System.out.println(
+                    "nodeID: " + nodeID + " Contacted a previously unreachable node, assume that follower is up");
             uV.totalNodes.incrementAndGet();
         }
     }
