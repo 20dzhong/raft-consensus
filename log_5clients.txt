@@ -1,0 +1,54 @@
+nodeID: 1 logs: [{Hello=Qasim, Donovan=Zhong, Raft=gRPC, Damn=it}]
+nodeID: 1 Heartbeat received
+nodeID: 2 logs: [{Hello=Qasim, Donovan=Zhong, Raft=gRPC, Damn=it}]
+nodeID: 2 Heartbeat received
+nodeID: 3 logs: [{Hello=Qasim, Donovan=Zhong, Raft=gRPC, Damn=it}]
+nodeID: 3 Heartbeat received
+Incoming connection from 127.0.0.1
+Received message from client: put, 0, 0
+putting (0, 0)...
+Start time of request: 1682525761644ms
+Incoming connection from 127.0.0.1
+Received message from client: put, 1, 1
+putting (1, 1)...
+Start time of request: 1682525761644ms
+Incoming connection from 127.0.0.1
+Received message from client: put, 2, 2
+putting (2, 2)...
+Start time of request: 1682525761644ms
+Incoming connection from 127.0.0.1
+Received message from client: put, 3, 3
+putting (3, 3)...
+Start time of request: 1682525761644ms
+Incoming connection from 127.0.0.1
+Received message from client: put, 4, 4
+putting (4, 4)...
+Start time of request: 1682525761644ms
+My prev: Damn Their Prev: 
+Node 1 synced at 1682525779793
+My prev: Damn Their Prev:
+Node 2 synced at 1682525779799
+My prev: Damn Their Prev:
+Node 3 synced at 1682525779806
+Node 1 synced at 1682525780820
+Node 2 synced at 1682525780825
+Node 3 synced at 1682525780828
+nodeID: 1 logs: [{0=0, Hello=Qasim, Donovan=Zhong, Raft=gRPC, Damn=it}]
+nodeID: 1 Heartbeat received
+Node 1 synced at 1682525781845
+Node 2 synced at 1682525781851
+Node 3 synced at 1682525781856
+nodeID: 2 logs: [{0=0, 1=1, Hello=Qasim, Donovan=Zhong, Raft=gRPC, Damn=it}]
+nodeID: 2 Heartbeat received
+Node 1 synced at 1682525782870
+Node 2 synced at 1682525782874
+Node 3 synced at 1682525782879
+nodeID: 3 logs: [{0=0, 1=1, 2=2, Hello=Qasim, Donovan=Zhong, Raft=gRPC, Damn=it}]
+nodeID: 3 Heartbeat received
+Node 1 synced at 1682525783886
+Node 2 synced at 1682525783888
+Node 3 synced at 1682525783891
+nodeID: 1 logs: [{0=0, 1=1, 2=2, 3=3, Hello=Qasim, Donovan=Zhong, 4=4, Raft=gRPC, Damn=it}]
+nodeID: 1 Heartbeat received
+nodeID: 2 logs: [{0=0, 1=1, 2=2, 3=3, Hello=Qasim, Donovan=Zhong, 4=4, Raft=gRPC, Damn=it}]
+nodeID: 2 Heartbeat received

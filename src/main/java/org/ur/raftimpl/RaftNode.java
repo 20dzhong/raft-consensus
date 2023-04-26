@@ -121,7 +121,7 @@ public class RaftNode {
             try {
                 // setting up the server with those variables allows the server thread to edit
                 // those variables
-                final RaftServer server = new RaftServer(port, nV);
+                final RaftServer server = new RaftServer(port, nV, this.nodeID);
                 server.start();
                 server.blockUntilShutdown();
             } catch (IOException | InterruptedException e) {

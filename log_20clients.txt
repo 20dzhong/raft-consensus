@@ -1,0 +1,190 @@
+nodeID: 2 logs: [{Hello=Qasim, Donovan=Zhong, Raft=gRPC, Damn=it}]
+nodeID: 2 Heartbeat received
+nodeID: 3 logs: [{Hello=Qasim, Donovan=Zhong, Raft=gRPC, Damn=it}]
+nodeID: 3 Heartbeat received
+Incoming connection from 127.0.0.1
+Received message from client: put, 0, 0
+putting (0, 0)...
+Start time of request: 1682524365022ms
+Incoming connection from 127.0.0.1
+Received message from client: put, 1, 1
+putting (1, 1)...
+Start time of request: 1682524365022ms
+Incoming connection from 127.0.0.1
+Received message from client: put, 2, 2
+putting (2, 2)...
+Start time of request: 1682524365022ms
+Incoming connection from 127.0.0.1
+Received message from client: put, 3, 3
+putting (3, 3)...
+Start time of request: 1682524365022ms
+Incoming connection from 127.0.0.1
+Received message from client: put, 4, 4
+putting (4, 4)...
+Start time of request: 1682524365022ms
+Incoming connection from 127.0.0.1
+Received message from client: put, 5, 5
+putting (5, 5)...
+Start time of request: 1682524365022ms
+Incoming connection from 127.0.0.1
+Received message from client: put, 6, 6
+putting (6, 6)...
+Start time of request: 1682524365022ms
+Incoming connection from 127.0.0.1
+Received message from client: put, 7, 7
+putting (7, 7)...
+Start time of request: 1682524365022ms
+Incoming connection from 127.0.0.1
+Received message from client: put, 8, 8
+putting (8, 8)...
+Start time of request: 1682524365022ms
+Incoming connection from 127.0.0.1
+Received message from client: put, 9, 9
+putting (9, 9)...
+Start time of request: 1682524365022ms
+Incoming connection from 127.0.0.1
+Received message from client: put, 10, 10
+putting (10, 10)...
+Start time of request: 1682524365022ms
+Incoming connection from 127.0.0.1
+Received message from client: put, 11, 11
+putting (11, 11)...
+Start time of request: 1682524365022ms
+Incoming connection from 127.0.0.1
+Received message from client: put, 12, 12
+putting (12, 12)...
+Start time of request: 1682524365022ms
+Incoming connection from 127.0.0.1
+Received message from client: put, 13, 13
+putting (13, 13)...
+Start time of request: 1682524365022ms
+Incoming connection from 127.0.0.1
+Received message from client: put, 14, 14
+putting (14, 14)...
+Start time of request: 1682524365022ms
+Incoming connection from 127.0.0.1
+Received message from client: put, 15, 15
+putting (15, 15)...
+Start time of request: 1682524365022ms
+Incoming connection from 127.0.0.1
+Received message from client: put, 16, 16
+putting (16, 16)...
+Start time of request: 1682524365022ms
+Incoming connection from 127.0.0.1
+Received message from client: put, 17, 17
+putting (17, 17)...
+Start time of request: 1682524365022ms
+Incoming connection from 127.0.0.1
+Received message from client: put, 18, 18
+putting (18, 18)...
+Start time of request: 1682524365022ms
+Incoming connection from 127.0.0.1
+Received message from client: put, 19, 19
+putting (19, 19)...
+Start time of request: 1682524365022ms
+Incoming connection from 127.0.0.1
+Received message from client: put, 1, 2
+putting (1, 2)...
+Start time of request: 1682524365022ms
+My prev: Damn Their Prev: 
+Node 1 synced at 1682524387218
+My prev: Damn Their Prev:
+Node 2 synced at 1682524387219
+My prev: Damn Their Prev:
+Node 3 synced at 1682524387221
+Node 1 synced at 1682524388233
+Node 2 synced at 1682524388241
+Node 3 synced at 1682524388247
+Node 1 synced at 1682524389270
+Node 2 synced at 1682524389275
+Node 3 synced at 1682524389277
+nodeID: 1 logs: [{0=0, 1=1, Hello=Qasim, Donovan=Zhong, Raft=gRPC, Damn=it}]
+nodeID: 1 Heartbeat received
+Node 1 synced at 1682524390282
+Node 2 synced at 1682524390284
+Node 3 synced at 1682524390286
+nodeID: 2 logs: [{0=0, 1=1, 2=2, Hello=Qasim, Donovan=Zhong, Raft=gRPC, Damn=it}]
+nodeID: 2 Heartbeat received
+Node 1 synced at 1682524391294
+Node 2 synced at 1682524391297
+Node 3 synced at 1682524391300
+nodeID: 3 logs: [{0=0, 1=1, 2=2, 3=3, Hello=Qasim, Donovan=Zhong, Raft=gRPC, Damn=it}]
+nodeID: 3 Heartbeat received
+Node 1 synced at 1682524392307
+Node 2 synced at 1682524392310
+Node 3 synced at 1682524392314
+Node 1 synced at 1682524393317
+Node 2 synced at 1682524393319
+Node 3 synced at 1682524393320
+Node 1 synced at 1682524394331
+Node 2 synced at 1682524394333
+Node 3 synced at 1682524394334
+nodeID: 1 logs: [{0=0, 1=1, 2=2, 3=3, Hello=Qasim, Donovan=Zhong, 4=4, 5=5, 6=6, Raft=gRPC, Damn=it}]
+nodeID: 1 Heartbeat received
+Node 1 synced at 1682524395347
+Node 2 synced at 1682524395355
+Node 3 synced at 1682524395361
+nodeID: 2 logs: [{Donovan=Zhong, 0=0, 1=1, 2=2, 3=3, Hello=Qasim, 4=4, 5=5, 6=6, 7=7, Raft=gRPC, Damn=it}]
+nodeID: 2 Heartbeat received
+Node 1 synced at 1682524396374
+Node 2 synced at 1682524396380
+Node 3 synced at 1682524396386
+nodeID: 3 logs: [{Donovan=Zhong, 0=0, 1=1, 2=2, 3=3, Hello=Qasim, 4=4, 5=5, 6=6, 7=7, 8=8, Raft=gRPC, Damn=it}]
+nodeID: 3 Heartbeat received
+Node 1 synced at 1682524397396
+Node 2 synced at 1682524397398
+Node 3 synced at 1682524397400
+Node 1 synced at 1682524398413
+Node 2 synced at 1682524398417
+Node 3 synced at 1682524398421
+Node 1 synced at 1682524399426
+Node 2 synced at 1682524399430
+Node 3 synced at 1682524399432
+nodeID: 1 logs: [{11=11, Donovan=Zhong, 0=0, 1=1, 2=2, 3=3, Hello=Qasim, 4=4, 5=5, 6=6, 7=7, 8=8, 9=9, Raft=gRPC, Damn=it, 10=10}]
+nodeID: 1 Heartbeat received
+Node 1 synced at 1682524400440
+Node 2 synced at 1682524400441
+Node 3 synced at 1682524400443
+nodeID: 2 logs: [{11=11, 12=12, Donovan=Zhong, 0=0, 1=1, 2=2, 3=3, Hello=Qasim, 4=4, 5=5, 6=6, 7=7, 8=8, 9=9, Raft=gRPC, Damn=it, 10=10}]
+nodeID: 2 Heartbeat received
+Node 1 synced at 1682524401453
+Node 2 synced at 1682524401458
+Node 3 synced at 1682524401460
+nodeID: 3 logs: [{11=11, 12=12, 13=13, Donovan=Zhong, 0=0, 1=1, 2=2, 3=3, Hello=Qasim, 4=4, 5=5, 6=6, 7=7, 8=8, 9=9, Raft=gRPC, Damn=it, 10=10}]
+nodeID: 3 Heartbeat received
+Node 1 synced at 1682524402466
+Node 2 synced at 1682524402468
+Node 3 synced at 1682524402469
+Node 1 synced at 1682524403486
+Node 2 synced at 1682524403491
+Node 3 synced at 1682524403498
+Node 1 synced at 1682524404510
+Node 2 synced at 1682524404512
+Node 3 synced at 1682524404514
+nodeID: 1 logs: [{11=11, 12=12, 13=13, 14=14, Donovan=Zhong, 15=15, 16=16, 0=0, 1=1, 2=2, 3=3, Hello=Qasim, 4=4, 5=5, 6=6, 7=7, 8=8, 9=9, Raft=gRPC, Damn=it, 10=10}]
+nodeID: 1 Heartbeat received
+Node 1 synced at 1682524405522
+Node 2 synced at 1682524405529
+Node 3 synced at 1682524405530
+nodeID: 2 logs: [{11=11, 12=12, 13=13, 14=14, Donovan=Zhong, 15=15, 16=16, 17=17, 0=0, 1=1, 2=2, 3=3, Hello=Qasim, 4=4, 5=5, 6=6, 7=7, 8=8, 9=9, Raft=gRPC, Damn=it, 10=10}]
+nodeID: 2 Heartbeat received
+Node 1 synced at 1682524406549
+Node 2 synced at 1682524406552
+Node 3 synced at 1682524406554
+nodeID: 3 logs: [{11=11, 12=12, 13=13, 14=14, Donovan=Zhong, 15=15, 16=16, 17=17, 18=18, 0=0, 1=1, 2=2, 3=3, Hello=Qasim, 4=4, 5=5, 6=6, 7=7, 8=8, 9=9, Raft=gRPC, Damn=it, 10=10}]
+nodeID: 3 Heartbeat received
+Node 1 synced at 1682524407563
+Node 2 synced at 1682524407565
+Node 3 synced at 1682524407566
+nodeID: 1 logs: [{Hello=Qasim, Damn=it, 10=10, 11=11, 12=12, 13=13, 14=14, Donovan=Zhong, 15=15, 16=16, 17=17, 18=18, 19=19, 0=0, 1=2, 2=2, 3=3, 4=4, 5=5, 6=6, 7=7, 8=8, 9=9, Raft=gRPC}]
+nodeID: 1 Heartbeat received
+nodeID: 2 logs: [{Hello=Qasim, Damn=it, 10=10, 11=11, 12=12, 13=13, 14=14, Donovan=Zhong, 15=15, 16=16, 17=17, 18=18, 19=19, 0=0, 1=2, 2=2, 3=3, 4=4, 5=5, 6=6, 7=7, 8=8, 9=9, Raft=gRPC}]
+nodeID: 2 Heartbeat received
+nodeID: 3 logs: [{Hello=Qasim, Damn=it, 10=10, 11=11, 12=12, 13=13, 14=14, Donovan=Zhong, 15=15, 16=16, 17=17, 18=18, 19=19, 0=0, 1=2, 2=2, 3=3, 4=4, 5=5, 6=6, 7=7, 8=8, 9=9, Raft=gRPC}]
+nodeID: 3 Heartbeat received
+nodeID: 1 logs: [{Hello=Qasim, Damn=it, 10=10, 11=11, 12=12, 13=13, 14=14, Donovan=Zhong, 15=15, 16=16, 17=17, 18=18, 19=19, 0=0, 1=2, 2=2, 3=3, 4=4, 5=5, 6=6, 7=7, 8=8, 9=9, Raft=gRPC}]
+nodeID: 1 Heartbeat received
+nodeID: 2 logs: [{Hello=Qasim, Damn=it, 10=10, 11=11, 12=12, 13=13, 14=14, Donovan=Zhong, 15=15, 16=16, 17=17, 18=18, 19=19, 0=0, 1=2, 2=2, 3=3, 4=4, 5=5, 6=6, 7=7, 8=8, 9=9, Raft=gRPC}]
+nodeID: 2 Heartbeat received
+nodeID: 3 logs: [{Hello=Qasim, Damn=it, 10=10, 11=11, 12=12, 13=13, 14=14, Donovan=Zhong, 15=15, 16=16, 17=17, 18=18, 19=19, 0=0, 1=2, 2=2, 3=3, 4=4, 5=5, 6=6, 7=7, 8=8, 9=9, Raft=gRPC}]
+nodeID: 3 Heartbeat receive

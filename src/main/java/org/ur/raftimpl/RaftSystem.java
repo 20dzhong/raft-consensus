@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Date;
 
 import com.google.protobuf.ByteString.Output;
 
@@ -78,7 +79,10 @@ public class RaftSystem {
             ServerSocket serverSocket = new ServerSocket(port);
             System.out.println("TCP server is listening on port " + port);
 
+            Date date = new Date();
+
             while (true) {
+                long time_start = date.getTime();
                 Socket socket = serverSocket.accept(); // wait for incoming connection
                 System.out.println("Incoming connection from " + socket.getInetAddress().getHostAddress());
                 // handle the incoming connection here
@@ -112,6 +116,7 @@ public class RaftSystem {
                     output.write(response.getBytes());
                 }
                 socket.close();
+                System.out.println("Start time of request: " + time_start + "ms");
             }
         } catch (IOException e) {
             e.printStackTrace();
