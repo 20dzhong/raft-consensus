@@ -1,3 +1,13 @@
+RAFT Key-Value Store Implementation
+Co-authors:
+    Donovan Zhong (dzhong2@u.rochester.edu)
+    Muhammad Qasim (mqasim@u.rochester.edu)
+
+How to run:
+*Make sure you have gradle installed
+$ ./gradlew build
+$ ./gradlew run --console=plain
+
 # Raft gRPC Implementation
 
 * ``raft.proto``: defines behaviors of gRPC server  
